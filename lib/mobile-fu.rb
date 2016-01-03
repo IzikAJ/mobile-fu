@@ -52,10 +52,10 @@ module ActionController
       #      has_mobile_fu false
       #    end
       #
-      def has_mobile_fu(set_request_format = true)
+      def has_mobile_fu(allow_mobile = true)
         include ActionController::MobileFu::InstanceMethods
 
-        before_filter :set_request_format if set_request_format
+        before_filter :set_allowed_views if allow_mobile
 
         helper_method :is_mobile_device?
         helper_method :is_tablet_device?
@@ -100,59 +100,24 @@ module ActionController
     end
 
     module InstanceMethods
-      def set_request_format(force_mobile = false)
-        force_mobile ? force_mobile_format : set_mobile_format
-      end
-      alias :set_device_type :set_request_format
-
-      # Forces the request format to be :mobile
-      def force_mobile_format
-        unless request.xhr?
-          request.format = :mobile
-          session[:mobile_view] = true if session[:mobile_view].nil?
-        end
-      end
-
-      # Forces the request format to be :tablet
-      def force_tablet_format
-        unless request.xhr?
-          request.format = :tablet
-          session[:tablet_view] = true if session[:tablet_view].nil?
-        end
-      end
-
       # Determines the request format based on whether the device is mobile or if
       # the user has opted to use either the 'Standard' view or 'Mobile' view or
       # 'Tablet' view.
 
-      def set_mobile_format
-        if request.format.html? && mobile_action? && is_mobile_device? && !request.xhr?
-          request.format = :mobile unless session[:mobile_view] == false
-          session[:mobile_view] = true if session[:mobile_view].nil?
-        elsif request.format.html? && mobile_action? && is_tablet_device? && !request.xhr?
-          request.format = :tablet unless session[:tablet_view] == false
-          session[:tablet_view] = true if session[:tablet_view].nil?
+      def set_allowed_views
+        if request.formats.first == Mime::HTML
+          if is_tablet_device?
+            request.formats.prepend(Mime::Type.lookup_by_extension(:tablet))
+          elsif is_mobile_device?
+            request.formats.prepend(Mime::Type.lookup_by_extension(:mobile))
+          end
+        end
+        if is_tablet_device?
+          prepend_view_path tablet_views_path
+        elsif is_mobile_device?
+          prepend_view_path mobile_views_path
         end
       end
-
-      # Returns either true or false depending on whether or not the format of the
-      # request is either :mobile or not.
-
-      def in_mobile_view?
-        return false unless request.format
-        request.format.to_sym == :mobile
-      end
-
-      # Returns either true or false depending on whether or not the format of the
-      # request is either :tablet or not.
-
-      def in_tablet_view?
-        return false unless request.format
-        request.format.to_sym == :tablet
-      end
-
-      # Returns either true or false depending on whether or not the user agent of
-      # the device making the request is matched to a device in our regex.
 
       def is_tablet_device?
         ::MobileFu::Tablet.is_a_tablet_device? request.user_agent
@@ -173,6 +138,14 @@ module ActionController
         request.user_agent.to_s.downcase.include? type.to_s.downcase
       end
 
+      def mobile_views_path
+        @@mobile_views_path ||= [File.join(Rails.root, 'app', 'views_mobile')]
+      end
+
+      def tablet_views_path
+        @@tablet_views_path ||= [File.join(Rails.root, 'app', 'views_tablet')]
+      end
+
       # Returns true if current action is supposed to use mobile format
       # See #has_mobile_fu_for
       def mobile_action?
@@ -185,7 +158,6 @@ module ActionController
 
       # Returns true if current action isn't supposed to use mobile format
       # See #has_no_mobile_fu_for
-
       def mobile_exempt?
         self.class.instance_variable_get("@mobile_exempt_actions").try(:include?, params[:action].try(:to_sym))
       end
