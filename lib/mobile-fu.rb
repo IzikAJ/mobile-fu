@@ -63,6 +63,8 @@ module ActionController
         helper_method :in_tablet_view?
         helper_method :is_device?
         helper_method :mobile_device
+        helper_method :mobile_enabled?
+        helper_method :has_mobile_version?
       end
 
       # Add this to your controllers to prevent the mobile format from being set for specific actions
@@ -105,7 +107,7 @@ module ActionController
       # 'Tablet' view.
 
       def set_allowed_views
-        if mobile_enabled? && mobile_action? && !request.xhr?
+        if has_mobile_version?
           if is_tablet_device?
             prepend_view_path tablet_views_path
             if (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
@@ -134,6 +136,10 @@ module ActionController
 
       def mobile_device
         request.headers['X_MOBILE_DEVICE']
+      end
+
+      def has_mobile_version?
+        mobile_enabled? && mobile_action? && !request.xhr?
       end
 
       def mobile_enabled?
