@@ -105,12 +105,14 @@ module ActionController
       # 'Tablet' view.
 
       def set_allowed_views
-        if request.formats.first == Mime::HTML
+        if (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
           if is_tablet_device?
             request.formats.prepend(Mime::Type.lookup_by_extension(:tablet))
           elsif is_mobile_device?
             request.formats.prepend(Mime::Type.lookup_by_extension(:mobile))
           end
+        else
+          raise request.formats.inspect
         end
         if is_tablet_device?
           prepend_view_path tablet_views_path
