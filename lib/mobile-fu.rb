@@ -55,7 +55,7 @@ module ActionController
       def has_mobile_fu(allow_mobile = true)
         include ActionController::MobileFu::InstanceMethods
 
-        before_filter :set_allowed_views if allow_mobile
+        before_filter :set_allowed_views
 
         helper_method :is_mobile_device?
         helper_method :is_tablet_device?
@@ -105,19 +105,22 @@ module ActionController
       # 'Tablet' view.
 
       def set_allowed_views
-        if (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
+        if mobile_enabled? && mobile_action? && !request.xhr?
           if is_tablet_device?
-            request.formats.prepend(Mime::Type.lookup_by_extension(:tablet))
+            prepend_view_path tablet_views_path
+            if (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
+              request.formats.prepend(Mime::TABLET)
+            end
           elsif is_mobile_device?
-            request.formats.prepend(Mime::Type.lookup_by_extension(:mobile))
+            prepend_view_path mobile_views_path
+            if (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
+              request.formats.prepend(Mime::MOBILE)
+            end
           end
         else
-          raise request.formats.inspect
-        end
-        if is_tablet_device?
-          prepend_view_path tablet_views_path
-        elsif is_mobile_device?
-          prepend_view_path mobile_views_path
+          if (request.formats.first == Mime::MOBILE) || (request.formats.first == Mime::TABLET)
+            request.formats = [:html]
+          end
         end
       end
 
@@ -131,6 +134,11 @@ module ActionController
 
       def mobile_device
         request.headers['X_MOBILE_DEVICE']
+      end
+
+      def mobile_enabled?
+        raise "You must owerride this method"
+        # false
       end
 
       # Can check for a specific user agent
