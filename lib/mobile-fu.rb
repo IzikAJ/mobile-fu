@@ -148,8 +148,8 @@ module ActionController
         true
       end
       def mobile_enabled?
-        raise "You must owerride this method"
-        # false
+        # raise "You must owerride this method"
+        false
       end
       def tablet_enabled?
         # raise "You must owerride this method"
