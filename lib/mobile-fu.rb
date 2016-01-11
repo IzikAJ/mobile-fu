@@ -111,12 +111,12 @@ module ActionController
         if mobile_action? && !request.xhr?
           if tablet_enabled? && is_tablet_device?
             prepend_view_path tablet_views_path
-            if (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
+            if requets_format_enabled? && (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
               request.formats.prepend(Mime::TABLET)
             end
           elsif mobile_enabled? && is_mobile_device?
             prepend_view_path mobile_views_path
-            if (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
+            if requets_format_enabled? && (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
               request.formats.prepend(Mime::MOBILE)
             end
           end
@@ -143,6 +143,10 @@ module ActionController
         mobile_enabled? && mobile_action? && !request.xhr?
       end
 
+      def requets_format_enabled?
+        # raise "You must owerride this method"
+        true
+      end
       def mobile_enabled?
         raise "You must owerride this method"
         # false
