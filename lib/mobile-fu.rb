@@ -64,6 +64,7 @@ module ActionController
         helper_method :is_device?
         helper_method :mobile_device
         helper_method :mobile_enabled?
+        helper_method :tablet_enabled?
         helper_method :has_mobile_version?
       end
 
@@ -107,13 +108,13 @@ module ActionController
       # 'Tablet' view.
 
       def set_allowed_views
-        if has_mobile_version?
-          if is_tablet_device?
+        if mobile_action? && !request.xhr?
+          if tablet_enabled? && is_tablet_device?
             prepend_view_path tablet_views_path
             if (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
               request.formats.prepend(Mime::TABLET)
             end
-          elsif is_mobile_device?
+          elsif mobile_enabled? && is_mobile_device?
             prepend_view_path mobile_views_path
             if (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
               request.formats.prepend(Mime::MOBILE)
@@ -145,6 +146,10 @@ module ActionController
       def mobile_enabled?
         raise "You must owerride this method"
         # false
+      end
+      def tablet_enabled?
+        # raise "You must owerride this method"
+        false
       end
 
       # Can check for a specific user agent
