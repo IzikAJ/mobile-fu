@@ -121,7 +121,7 @@ module ActionController
             end
           end
 
-          if !requets_format_enabled? && (equest.formats.first == Mime::MOBILE) || (equest.formats.first == Mime::TABLET)
+          if !requets_format_enabled? && (request.formats.first == Mime::MOBILE) || (request.formats.first == Mime::TABLET)
             request.formats = [:html]
           end
         else
