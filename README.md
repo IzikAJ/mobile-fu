@@ -1,5 +1,6 @@
 Mobile Fu
 =========
+- some uncmmon features implemented
 
 Want to automatically detect mobile devices that access your Rails application?
 Mobile Fu allows you to do just that.  People can access your site from a Palm,
