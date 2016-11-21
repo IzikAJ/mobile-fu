@@ -111,23 +111,21 @@ module ActionController
         if mobile_action? && !request.xhr?
           if tablet_enabled? && is_tablet_device?
             prepend_view_path tablet_views_path
-            if request_format_enabled? && (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
+            if request_format_enabled? && [Mime::HTML, Mime::ALL].include?(request.formats.first)
               request.formats.prepend(Mime::TABLET)
             end
           elsif mobile_enabled? && is_mobile_device?
             prepend_view_path mobile_views_path
-            if request_format_enabled? && (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
+            if request_format_enabled? && [Mime::HTML, Mime::ALL].include?(request.formats.first)
               request.formats.prepend(Mime::MOBILE)
             end
           end
 
-          if !request_format_enabled? && (request.formats.first == Mime::MOBILE) || (request.formats.first == Mime::TABLET)
+          if !request_format_enabled? && [Mime::HTML, Mime::ALL].include?(request.formats.first)
             request.format = :html
           end
-        else
-          if (request.formats.first == Mime::MOBILE) || (request.formats.first == Mime::TABLET)
-            request.format = :html
-          end
+        elsif [Mime::HTML, Mime::ALL].include?(request.formats.first)
+          request.format = :html
         end
       end
 
