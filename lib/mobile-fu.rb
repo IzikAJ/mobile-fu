@@ -81,7 +81,7 @@ module ActionController
       #     end
       #   end
       def has_no_mobile_fu_for(*actions)
-        @mobile_exempt_actions = actions
+        @mobile_except_actions = actions
       end
 
       # Add this to your controllers to only let those actions use the mobile format
@@ -111,17 +111,17 @@ module ActionController
         if mobile_action? && !request.xhr?
           if tablet_enabled? && is_tablet_device?
             prepend_view_path tablet_views_path
-            if requets_format_enabled? && (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
+            if request_format_enabled? && (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
               request.formats.prepend(Mime::TABLET)
             end
           elsif mobile_enabled? && is_mobile_device?
             prepend_view_path mobile_views_path
-            if requets_format_enabled? && (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
+            if request_format_enabled? && (request.formats.first == Mime::HTML) || (request.formats.first == Mime::ALL)
               request.formats.prepend(Mime::MOBILE)
             end
           end
 
-          if !requets_format_enabled? && (request.formats.first == Mime::MOBILE) || (request.formats.first == Mime::TABLET)
+          if !request_format_enabled? && (request.formats.first == Mime::MOBILE) || (request.formats.first == Mime::TABLET)
             request.format = :html
           end
         else
@@ -147,7 +147,7 @@ module ActionController
         mobile_enabled? && mobile_action? && !request.xhr?
       end
 
-      def requets_format_enabled?
+      def request_format_enabled?
         # raise "You must owerride this method"
         true
       end
@@ -188,7 +188,7 @@ module ActionController
       # Returns true if current action isn't supposed to use mobile format
       # See #has_no_mobile_fu_for
       def mobile_exempt?
-        self.class.instance_variable_get("@mobile_exempt_actions").try(:include?, params[:action].try(:to_sym))
+        self.class.instance_variable_get("@mobile_except_actions").try(:include?, params[:action].try(:to_sym))
       end
     end
   end
